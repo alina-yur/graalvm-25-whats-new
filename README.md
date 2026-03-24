@@ -7,6 +7,11 @@ The latest GraalVM release brings major improvements for easy migration, even hi
     - We’ve refined our existing GNN models and, for the first time, are adding two specialized variants: a more conservative model for `-O2` and a more aggressive one for `-O3`.
     - On be default in `-O3`, in `-O2` add `-H:+MLProfileInferenceUseGNNModel`
     - We added another ML model for image size reduction: use `-H:+MLCallCountProfileInference` for up to 20% smaller executables.
+    - Demo: [Spring Petclinic](https://github.com/alina-yur/native-spring-petclinic)
+		- git switch custom-main
+		- ./bench-native.sh
+		- ./bench-native-O3.sh
+		- ./bench-native-O3-ml.sh
 - Zero configuration migration with [`-H:Preserve`](https://github.com/oracle/graal/pull/10180)
     - `-H:Preserve=package=<package>` preserves all elements from a given package
     - `-H:Preserve=module=<module>` preserves all elements from a given module
@@ -16,7 +21,7 @@ The latest GraalVM release brings major improvements for easy migration, even hi
     - SBOM options: `--enable-sbom=[embed|export|classpath|class-level]`
     - Adavanced obfuscation: `-H:AdvancedObfuscation=`
 - New tools
-
+	- [Build Reports](https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/), using with agents
 
 ## What's Next
 
