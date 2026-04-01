@@ -3,7 +3,6 @@
 The latest GraalVM release brings major improvements for easy migration, even higher performance, and better developer experience. In this session, we’ll look at what’s new in GraalVM 25, how it helps build faster and more secure native executables, and what’s coming next.
 
 ## What's New
-- GraalVM 25 and what's coming next
 - ML for high performance out of the box
     - We’ve refined our existing GNN models and, for the first time, are adding two specialized variants: a more conservative model for `-O2` and a more aggressive one for `-O3`.
     - We added another ML model for image size reduction: use `-H:+MLCallCountProfileInference` for up to 20% smaller executables.
