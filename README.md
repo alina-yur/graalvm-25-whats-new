@@ -2,6 +2,14 @@
 
 The latest GraalVM release brings major improvements for easy migration, even higher performance, and better developer experience. In this session, we’ll look at what’s new in GraalVM 25, how it helps build faster and more secure native executables, and what’s coming next.
 
+**Voxxed Days Amsterdam session recording**
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=IrcJzRYbCV8">
+    <img src="https://i.ytimg.com/vi/IrcJzRYbCV8/hq720.jpg">
+  </a>
+</div>
+
+
 ## What's New
 - ML for high performance out of the box
     - We’ve refined our existing GNN models and, for the first time, are adding two specialized variants: a more conservative model for `-O2` and a more aggressive one for `-O3`.
