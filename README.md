@@ -1,6 +1,8 @@
 # GraalVM 25: What's New and What's Next
 
-The latest GraalVM release brings major improvements for easy migration, even higher performance, and better developer experience. In this session, we’ll look at what’s new in GraalVM 25, how it helps build faster and more secure native executables, and what’s coming next.
+GraalVM 25 brings several native compilation improvements: simpler migration, better visibility into reflection and other dynamic access, ML-based optimizations, stronger security defaults, and new tooling.
+
+This repository contains the links and demo notes for the Voxxed Days Amsterdam session.
 
 **Voxxed Days Amsterdam session recording**
 <div align="center">
@@ -9,32 +11,106 @@ The latest GraalVM release brings major improvements for easy migration, even hi
   </a>
 </div>
 
-
 ## What's New
-- ML for high performance out of the box
-    - We’ve refined our existing GNN models and, for the first time, are adding two specialized variants: a more conservative model for `-O2` and a more aggressive one for `-O3`.
-    - We added another ML model for image size reduction: use `-H:+MLCallCountProfileInference` for up to 20% smaller executables.
-    - 👩‍💻 Demo: [Spring Petclinic](https://github.com/alina-yur/native-spring-petclinic)
-		- git switch custom-main
-		- ./bench-native.sh
-		- ./bench-native-O3.sh
-		- ./bench-native-O3-ml.sh
-- Zero configuration migration with [`-H:Preserve`](https://github.com/oracle/graal/pull/10180)
-    - `-H:Preserve=package=<package>` preserves all elements from a given package
-    - `-H:Preserve=module=<module>` preserves all elements from a given module
-    - `-H:Preserve=package=<package-wildcard>` preserves all elements from packages captured by the wildcard. For example, -H:Preserve=package=my.app.*.
-    - `-H:Preserve=all` preserves all elements from the JDK, the classpath, and the module path
-    - General approach to complicated libraries:
-        - Use [reachablity repo](https://github.com/oracle/graalvm-reachability-metadata/tree/master/metadata) → use framework annotations like `@ReflectiveAccess` → generate configuration in `.json` files 
-- Security by default
-    - 👩‍💻 Demo: SBOM options: `--enable-sbom=[embed|export|classpath|class-level]`
-    - Adavanced obfuscation: `-H:AdvancedObfuscation=`
-- New tools
-	- 👩‍💻 Demo: [Build Reports](https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/), using with agents
+
+### ML for high performance out of the box
+
+We’ve refined our existing GNN models and, for the first time, are adding two specialized variants: a more conservative model for `-O2` and a more aggressive one for `-O3`.
+
+We added another ML model for image size reduction: use `-H:+MLCallCountProfileInference` for up to 20% smaller executables. This option is not available in GraalVM Community Edition.
+
+Demo: [Spring Petclinic](https://github.com/alina-yur/native-spring-petclinic)
+
+```bash
+git switch custom-main
+./bench-native.sh
+./bench-native-O3.sh
+./bench-native-O3-ml.sh
+```
+
+### Simplified migration with `-H:Preserve`
+
+Native Image performs sophisticated analysis to determine which parts of your application are needed at run time. But what if you want to include everything from your project, a library, a package, or a module?
+
+GraalVM 25 adds the experimental `-H:Preserve` option for that. It can preserve classes, resources, and metadata from the selected scope in the native executable.
+
+```bash
+-H:Preserve=package=com.example.app
+-H:Preserve=package=com.example.*
+-H:Preserve=module=my.module
+-H:Preserve=path=lib/some-library.jar
+-H:Preserve=all
+```
+
+Use the smallest scope that works. `-H:Preserve=all` is useful for migration and debugging, but it can use much more memory and produce much larger images.
+
+- Docs: [`-H:Preserve`](https://www.graalvm.org/jdk25/reference-manual/native-image/overview/Options/#preserving-packages-modules-or-classes)
+- Demo: [`preserve-package`](https://github.com/graalvm/graalvm-demos/tree/master/native-image/preserve-package)
+
+### Inspecting dynamic access in Build Reports
+
+GraalVM 25 can show dynamic access in the Native Image Build Report. Build with both options:
+
+```bash
+--emit=build-report -H:+ReportDynamicAccess
+```
+
+Build Report is not available in GraalVM Community Edition.
+
+The Dynamic Access tab helps separate two cases:
+
+- No investigation needed: no dynamic calls were found, or metadata/configuration is already provided.
+- Needs investigation: dynamic calls were found and metadata might be missing.
+
+This is useful for reflection-heavy applications and for checking third-party libraries during migration.
+
+- Docs: [Dynamic Access in Build Reports](https://www.graalvm.org/jdk25/reference-manual/native-image/overview/build-report/#dynamic-access)
+- Demo: [Build Reports](https://www.graalvm.org/jdk25/reference-manual/native-image/overview/build-report/) with agents
+
+### Security improvements
+
+Oracle GraalVM 25 embeds an SBOM in native images by default. Use `--enable-sbom=false` to disable it, or choose another SBOM mode when you need a different workflow.
+
+```bash
+--enable-sbom=embed
+--enable-sbom=export
+--enable-sbom=classpath
+--enable-sbom=class-level,export
+```
+
+The SBOM can be inspected and scanned as part of deployment checks.
+
+```bash
+native-image-inspect --sbom ./target/demo-sbom | grype -v
+```
+
+Oracle GraalVM 25 also adds advanced obfuscation for Native Image. It is experimental and available in Oracle GraalVM. It applies symbol obfuscation to application code and third-party dependencies.
+
+```bash
+-H:+UnlockExperimentalVMOptions -H:AdvancedObfuscation=export-mapping
+```
+
+- Docs: [Advanced Obfuscation](https://www.graalvm.org/jdk25/security-guide/native-image/obfuscation/)
+- Demo: `backups/security.sh` and `backups/obfuscation.sh`
+
+### New tooling
+
+The new experimental Native Image Tracing Agent runs with native-image semantics instead of observing the application on the JVM. A typical workflow is:
+
+```bash
+# Build the native executable.
+# -H:Preserve=all also enables metadata tracing support.
+native-image -H:Preserve=all ...
+
+# Run the executable and record metadata usage.
+./application -XX:TraceMetadata=path=<trace_output_directory>
+```
+
+The generated reachability metadata can then be used to rebuild with a narrower configuration.
 
 ## What's Next
 
+- [Project Crema: Open World for Native Image](https://github.com/oracle/graal/issues/11327) - work in progress to relax Native Image's default closed-world assumption by allowing dynamic loading and execution of classes at run time.
 - [Native Image Layers](https://github.com/oracle/graal/issues/7626)
 - [GenShenandoah GC in Native Image](https://github.com/orgs/oracle/projects/6/views/1?pane=issue&itemId=130712659&issue=oracle%7Cgraal%7C12237)
-- [Web Image (javac)](https://graalvm.github.io/graalvm-demos/native-image/wasm-javac/)
-- 👩‍💻 Demo: [Project Crema: Open World for Native Image](https://github.com/orgs/oracle/projects/6?pane=issue&itemId=113766307&issue=oracle%7Cgraal%7C11327)
+- [Web Image (`javac`)](https://graalvm.github.io/graalvm-demos/native-image/wasm-javac/)
