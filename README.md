@@ -1,8 +1,8 @@
 # GraalVM 25: What's New and What's Next
 
-GraalVM 25 brings several native compilation improvements: simpler migration, better visibility into reflection and other dynamic access, ML-based optimizations, stronger security defaults, and new tooling.
+GraalVM 25 brings several native compilation improvements: simpler migration, better visibility into reflection and other dynamic access, ML-based optimizations, new security features, and new tooling.
 
-This repository contains the links and demo notes for the Voxxed Days Amsterdam session.
+This repository contains the links and demo notes for a conference talk.
 
 **Voxxed Days Amsterdam session recording**
 <div align="center">
@@ -42,20 +42,18 @@ GraalVM 25 adds the experimental `-H:Preserve` option for that. It can preserve 
 -H:Preserve=all
 ```
 
-Use the smallest scope that works. `-H:Preserve=all` is useful for migration and debugging, but it can use much more memory and produce much larger images.
+Use the smallest scope that works. `-H:Preserve=all` is useful for migration and debugging, but it can use more memory and produce larger images, so go for more granular options.
 
 - Docs: [`-H:Preserve`](https://www.graalvm.org/jdk25/reference-manual/native-image/overview/Options/#preserving-packages-modules-or-classes)
 - Demo: [`preserve-package`](https://github.com/graalvm/graalvm-demos/tree/master/native-image/preserve-package)
 
 ### Inspecting dynamic access in Build Reports
 
-GraalVM 25 can show dynamic access in the Native Image Build Report. Build with both options:
+GraalVM 25 can show dynamic access in the Native Image Build Report. Build with both options (on Oracle GraalVM):
 
 ```bash
 --emit=build-report -H:+ReportDynamicAccess
 ```
-
-Build Report is not available in GraalVM Community Edition.
 
 The Dynamic Access tab helps separate two cases:
 
@@ -65,11 +63,11 @@ The Dynamic Access tab helps separate two cases:
 This is useful for reflection-heavy applications and for checking third-party libraries during migration.
 
 - Docs: [Dynamic Access in Build Reports](https://www.graalvm.org/jdk25/reference-manual/native-image/overview/build-report/#dynamic-access)
-- Demo: [Build Reports](https://www.graalvm.org/jdk25/reference-manual/native-image/overview/build-report/) with agents
+- Demo: [Build Reports](https://www.graalvm.org/jdk25/reference-manual/native-image/overview/build-report/)
 
 ### Security improvements
 
-Oracle GraalVM 25 embeds an SBOM in native images by default. Use `--enable-sbom=false` to disable it, or choose another SBOM mode when you need a different workflow.
+Oracle GraalVM 25 embeds an SBOM in native images by default. Use `--enable-sbom=false` to disable it, or choose another SBOM mode when you need a different workflow. For example, the classpath option can be useful for integrations with 
 
 ```bash
 --enable-sbom=embed
@@ -84,7 +82,7 @@ The SBOM can be inspected and scanned as part of deployment checks.
 native-image-inspect --sbom ./target/demo-sbom | grype -v
 ```
 
-Oracle GraalVM 25 also adds advanced obfuscation for Native Image. It is experimental and available in Oracle GraalVM. It applies symbol obfuscation to application code and third-party dependencies.
+Oracle GraalVM 25 also adds advanced obfuscation for Native Image, making native images even harder to reverse-engineer, and protecting your intellectual property. It applies symbol obfuscation to application code and third-party dependencies. it's available in Oracle GraalVM.
 
 ```bash
 -H:+UnlockExperimentalVMOptions -H:AdvancedObfuscation=export-mapping
